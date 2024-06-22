@@ -34,6 +34,6 @@ class Handler(FileSystemEventHandler):
             print(f"Received deleted event - {event.src_path}")
 
 if __name__ == '__main__':
-    path = "C:\\Users\\karlo\\Documents\\Python Shit\\sync files\\to_be_synced"
+    path = "/home/karlo/Documents/Charon"
     watcher = Watcher(path)
     watcher.run()
