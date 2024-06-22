@@ -16,7 +16,7 @@ def create_server(host, port, certfile, keyfile):
         print(f'Connection from {addr}')
         secure_socket = context.wrap_socket(client_socket, server_side=True)
         #recive_file(secure_socket)
-        receive_text(secure_socket)
+        receive_file(secure_socket)
 
 if __name__ == "__main__":
     create_server('localhost', 12345, PATH+'cert.pem', PATH+'key.pem')

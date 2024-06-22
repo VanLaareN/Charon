@@ -1,17 +1,16 @@
 import ssl
 import socket
-import threading
 
 PATH = "/home/karlo/Documents/Charon/"
+BUFFER = 4096
 
 def receive_file(secure_socket):
     filename = receive_text(secure_socket)
     print(f'Filename received: {filename}')
-    send_text(secure_socket, "RECEIVED_FILE")
     try:
-        with open(PATH + "test/" + filename, 'wb') as f:
+        with open(PATH + "server/" + filename, 'wb') as f:
             while True:
-                data = secure_socket.recv(4096)
+                data = secure_socket.recv(BUFFER)
                 if not data:
                     break
                 f.write(data)
@@ -31,24 +30,20 @@ def send_file(server_host, server_port, filename):
     print(f'Connected to {server_host}:{server_port}')
 
     send_text(secure_socket, filename.split("/")[-1])
-    RESPONSE = receive_text(secure_socket)
-    print("RESPONSE: " + RESPONSE)
 
-    if RESPONSE == "RECEIVED_FILE":
-        try:
-            with open(filename, 'rb') as f:
-                while True:
-                    data = f.read(4096)
-                    if not data:
-                        break
-                    secure_socket.sendall(data)
-            print('File sent successfully.')
-        finally:
-            secure_socket.close()
+    try:
+        with open(filename, 'rb') as f:
+            while True:
+                data = f.read(BUFFER)
+                if not data:
+                    break
+                secure_socket.sendall(data)
+        print('File sent successfully.')
+    finally:
+        secure_socket.close()
 
 def receive_text(secure_socket):
-    data = secure_socket.recv(4096).decode('utf-8')
-    print(f'Text received: {data}')
+    data = secure_socket.recv(BUFFER).decode('utf-8')
     return data
 
 def send_text(secure_socket, text):
