@@ -1,10 +1,15 @@
-PATH = "/home/karlo/Documents/Charon/"
 import ssl
 import socket
+import threading
 
-def recive_file(secure_socket):
+PATH = "/home/karlo/Documents/Charon/"
+
+def receive_file(secure_socket):
+    filename = receive_text(secure_socket)
+    print(f'Filename received: {filename}')
+    send_text(secure_socket, "RECEIVED_FILE")
     try:
-        with open(PATH+'received_file', 'wb') as f:
+        with open(PATH + "test/" + filename, 'wb') as f:
             while True:
                 data = secure_socket.recv(4096)
                 if not data:
@@ -13,7 +18,6 @@ def recive_file(secure_socket):
         print('File received successfully.')
     finally:
         secure_socket.close()
-
 
 def send_file(server_host, server_port, filename):
     context = ssl.create_default_context()
@@ -26,13 +30,30 @@ def send_file(server_host, server_port, filename):
     secure_socket.connect((server_host, server_port))
     print(f'Connected to {server_host}:{server_port}')
 
+    send_text(secure_socket, filename.split("/")[-1])
+    RESPONSE = receive_text(secure_socket)
+    print("RESPONSE: " + RESPONSE)
+
+    if RESPONSE == "RECEIVED_FILE":
+        try:
+            with open(filename, 'rb') as f:
+                while True:
+                    data = f.read(4096)
+                    if not data:
+                        break
+                    secure_socket.sendall(data)
+            print('File sent successfully.')
+        finally:
+            secure_socket.close()
+
+def receive_text(secure_socket):
+    data = secure_socket.recv(4096).decode('utf-8')
+    print(f'Text received: {data}')
+    return data
+
+def send_text(secure_socket, text):
     try:
-        with open(filename, 'rb') as f:
-            while True:
-                data = f.read(4096)
-                if not data:
-                    break
-                secure_socket.sendall(data)
-        print('File sent successfully.')
-    finally:
-        secure_socket.close()
+        secure_socket.sendall(text.encode('utf-8'))
+        print(f'Text sent successfully: {text}')
+    except Exception as e:
+        print(f'Failed to send text: {e}')
