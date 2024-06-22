@@ -1,25 +1,38 @@
-def receive_file(client_socket, buffer_size=4096, save_path="C:\\Users\\karlo\\Documents\\Python Shit\\sync files\\recived_file.txt"):
-    # Receive the file data
-    with open(save_path, 'wb') as file:
-        while True:
-            bytes_read = client_socket.recv(buffer_size)
-            if not bytes_read:
-                # File transmission is done
-                break
-            file.write(bytes_read)
-    print("[+] File received successfully.")
+PATH = "/home/karlo/Documents/Charon/"
+import ssl
+import socket
 
-    # Close the sockets
-    client_socket.close()
+def recive_file(secure_socket):
+    try:
+        with open(PATH+'received_file', 'wb') as f:
+            while True:
+                data = secure_socket.recv(4096)
+                if not data:
+                    break
+                f.write(data)
+        print('File received successfully.')
+    finally:
+        secure_socket.close()
 
 
-def send_file(client_socket, file_path, buffer_size=4096):
-    # Send the file data
-    with open(file_path, 'rb') as file:
-        while True:
-            bytes_read = file.read(buffer_size)
-            if not bytes_read:
-                # File transmission is done
-                break
-            client_socket.sendall(bytes_read)
-    print("[+] File sent successfully.")
+def send_file(server_host, server_port, filename):
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+
+    raw_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    secure_socket = context.wrap_socket(raw_socket, server_hostname=server_host)
+
+    secure_socket.connect((server_host, server_port))
+    print(f'Connected to {server_host}:{server_port}')
+
+    try:
+        with open(filename, 'rb') as f:
+            while True:
+                data = f.read(4096)
+                if not data:
+                    break
+                secure_socket.sendall(data)
+        print('File sent successfully.')
+    finally:
+        secure_socket.close()

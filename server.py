@@ -1,8 +1,7 @@
-PATH = "/home/karlo/Documents/Charon/"
-
-
 import socket
 import ssl
+from socket_methods import PATH
+from socket_methods import recive_file
 
 def create_server(host, port, certfile, keyfile):
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -17,17 +16,7 @@ def create_server(host, port, certfile, keyfile):
         client_socket, addr = server_socket.accept()
         print(f'Connection from {addr}')
         secure_socket = context.wrap_socket(client_socket, server_side=True)
-        
-        try:
-            with open(PATH+'received_file.txt', 'wb') as f:
-                while True:
-                    data = secure_socket.recv(4096)
-                    if not data:
-                        break
-                    f.write(data)
-            print('File received successfully.')
-        finally:
-            secure_socket.close()
+        recive_file(secure_socket)
 
 if __name__ == "__main__":
     create_server('localhost', 12345, PATH+'cert.pem', PATH+'key.pem')
