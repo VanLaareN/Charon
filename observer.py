@@ -1,8 +1,8 @@
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from socket_methods import PATH
 from queue import Queue
+from datetime import datetime
 
 class Watcher:
     def __init__(self, directory_to_watch, event_queue):
@@ -24,18 +24,14 @@ class Watcher:
 class Handler(FileSystemEventHandler):
     def __init__(self, event_queue):
         self.event_queue = event_queue
+        self.processed_files = set()
 
-    def on_any_event(self, event):
+    def on_modified(self, event):
         if event.is_directory:
             return None
-        event_details = None
-        if event.event_type == 'created':
-            event_details = event.src_path
-        elif event.event_type == 'modified':
-            event_details = event.src_path
-        elif event.event_type == 'deleted':
-            event_details = event.src_path
-
-        if event_details:
-            print(event_details)
+        event_details = event.src_path
+        time_stamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        modified_event = event_details + str(time_stamp)
+        if modified_event not in self.processed_files:
+            self.processed_files.add(modified_event)
             self.event_queue.put(event_details)
